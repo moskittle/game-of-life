@@ -10,7 +10,7 @@ public class GameOfLifeManager : MonoBehaviour
     [Range(10, 50)]
     public int gridSize = 20;
 
-    [Range(0.2f, 2.0f)]
+    [Range(0.1f, 2.0f)]
     public float timeStep = 1.0f;
     private float timeAccumulator = 0.0f;
 
@@ -38,8 +38,15 @@ public class GameOfLifeManager : MonoBehaviour
 
                 bool visible = Random.Range(0f, 1f) > 0.5f;
                 cellValues[i, j] = visible ? 1 : 0;
+                //cellValues[i, j] = 0;
             }
         }
+
+        //cellValues[0, 1] = 1;
+        //cellValues[1, 2] = 1;
+        //cellValues[2, 0] = 1;
+        //cellValues[2, 1] = 1;
+        //cellValues[2, 2] = 1;
     }
 
     void Update()
@@ -69,7 +76,9 @@ public class GameOfLifeManager : MonoBehaviour
             {
                 int neighborCount = GetAliveNeighborCount(cellValues, i, j);
                 bool alive = IsAliveCell(cellValues, i, j);
-                long newCellValue = 0;
+                long newValue = 0;
+
+                //Debug.Log("(" + i + ", " + j + ") : " + "alive(" + alive + ")" + ", neighbors(" + neighborCount + ")");
 
                 // rules here
                 if (alive)
@@ -77,8 +86,8 @@ public class GameOfLifeManager : MonoBehaviour
                     // 1. If an "alive" cell had less than 2 or more than 3 alive neighbors(in any of the 8 surrounding cells), it becomes dead.
                     if (neighborCount < 2 || neighborCount > 3)
                     {
-                        newCellValue = 0;   // dead
-                        SetCellValue(newCellValues, i, j, newCellValue);
+                        newValue = 0;   // dead
+                        SetCellValue(newCellValues, i, j, newValue);
                     }
                 }
                 else
@@ -86,8 +95,8 @@ public class GameOfLifeManager : MonoBehaviour
                     // 2. If a "dead" cell had *exactly* 3 alive neighbors, it becomes alive.
                     if (neighborCount == 3)
                     {
-                        newCellValue = 1;   // alive
-                        SetCellValue(newCellValues, i, j, newCellValue);
+                        newValue = 1;   // alive
+                        SetCellValue(newCellValues, i, j, newValue);
                     }
                 }
             }
@@ -140,10 +149,12 @@ public class GameOfLifeManager : MonoBehaviour
     {
         int aliveCount = 0;
 
-        for (int x = i - 1; x <= i + 1; x += 2)
+        for (int x = i - 1; x <= i + 1; ++x)
         {
-            for (int y = j - 1; y <= j + 1; y += 2)
+            for (int y = j - 1; y <= j + 1; ++y)
             {
+                if (x == i && y == j) { continue; } // skip this cell itself
+
                 if (IsValidCell(x, y) && IsAliveCell(cells, x, y))
                 {
                     aliveCount++;
