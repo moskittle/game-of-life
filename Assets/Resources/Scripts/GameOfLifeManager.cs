@@ -7,10 +7,10 @@ public class GameOfLifeManager : MonoBehaviour
 {
     public GameObject cellPrefab;
 
-    [Range(10, 50)]
+    [Range(4, 50)]
     public int gridSize = 20;
 
-    [Range(0.1f, 2.0f)]
+    [Range(0.05f, 2.0f)]
     public float timeStep = 1.0f;
     private float timeAccumulator = 0.0f;
 
@@ -35,10 +35,11 @@ public class GameOfLifeManager : MonoBehaviour
                 // origin at (0, 0), range is [-gridSize/2, gridSize/2]
                 Vector3 position = new Vector3(i - gridSize / 2.0f, 0, j - gridSize / 2.0f);
                 cells[i, j].transform.position = position;
+                cells[i, j].name = "Cell_" + i + "_" + j;
 
-                bool visible = Random.Range(0f, 1f) > 0.5f;
-                cellValues[i, j] = visible ? 1 : 0;
-                //cellValues[i, j] = 0;
+                //bool visible = Random.Range(0f, 1f) > 0.5f;
+                //cellValues[i, j] = visible ? 1 : 0;
+                cellValues[i, j] = 0;
             }
         }
 
@@ -47,6 +48,21 @@ public class GameOfLifeManager : MonoBehaviour
         //cellValues[2, 0] = 1;
         //cellValues[2, 1] = 1;
         //cellValues[2, 2] = 1;
+
+        //cellValues[0, 1] = 1;
+        //cellValues[1, 1] = 1;
+        //cellValues[2, 1] = 1;
+        //cellValues[2, 2] = 1;
+        //cellValues[1, 3] = 1;
+
+        cellValues[gridSize - 1, 0] = 1;
+        cellValues[gridSize - 2, 1] = 1;
+        cellValues[gridSize - 3, 1] = 1;
+        cellValues[gridSize - 1, 2] = 1;
+        cellValues[gridSize - 2, 2] = 1;
+
+        DisplayCells();
+
     }
 
     void Update()
@@ -56,6 +72,8 @@ public class GameOfLifeManager : MonoBehaviour
         if (timeAccumulator > timeStep)
         {
             UpdateCell();
+            DisplayCells();
+
 
             while (timeAccumulator > 0.0f)
             {
@@ -63,12 +81,11 @@ public class GameOfLifeManager : MonoBehaviour
             }
         }
 
-        DisplayCells();
     }
 
     void UpdateCell()
     {
-        newCellValues = cellValues;
+        CopyCellsValue(cellValues, newCellValues);
 
         for (int i = 0; i < gridSize; ++i)
         {
@@ -78,6 +95,7 @@ public class GameOfLifeManager : MonoBehaviour
                 bool alive = IsAliveCell(cellValues, i, j);
                 long newValue = 0;
 
+                // TODO: remove log
                 //Debug.Log("(" + i + ", " + j + ") : " + "alive(" + alive + ")" + ", neighbors(" + neighborCount + ")");
 
                 // rules here
@@ -102,7 +120,7 @@ public class GameOfLifeManager : MonoBehaviour
             }
         }
 
-        cellValues = newCellValues;
+        CopyCellsValue(newCellValues, cellValues);
     }
 
     void DisplayCells()
@@ -163,5 +181,16 @@ public class GameOfLifeManager : MonoBehaviour
         }
 
         return aliveCount;
+    }
+
+    private void CopyCellsValue(long[,] src, long[,] dest)
+    {
+        for (int i = 0; i < gridSize; ++i)
+        {
+            for (int j = 0; j < gridSize; ++j)
+            {
+                dest[i, j] = src[i, j];
+            }
+        }
     }
 }
