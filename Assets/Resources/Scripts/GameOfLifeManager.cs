@@ -77,7 +77,7 @@ public class GameOfLifeManager : MonoBehaviour
 
     public void TimeStepValueChangeCheck()
     {
-        timeStep = Mathf.SmoothStep(0.01f, 1.0f, timeStepSlider.value);
+        timeStep = 1.0f - Mathf.SmoothStep(0.01f, 0.98f, timeStepSlider.value);
 
     }
 
