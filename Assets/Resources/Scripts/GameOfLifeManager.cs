@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UI;
 
 public class GameOfLifeManager : MonoBehaviour
 {
@@ -10,11 +10,13 @@ public class GameOfLifeManager : MonoBehaviour
     [Range(4, 100)]
     public int gridSize = 20;
 
-    [Range(0.05f, 2.0f)]
+    [Range(0.03f, 1.0f)]
     public float timeStep = 1.0f;
     private float timeAccumulator = 0.0f;
+    public Slider timeStepSlider;
 
-    public Gradient colorPallete;
+    public Gradient defaultColorPallete;
+    private Gradient currColorPallete;
 
     private GameObject[,] cells;
     private long[,] cellValues; // a cell is alive if value is greater than 0; otherwise, it is dead
@@ -45,28 +47,14 @@ public class GameOfLifeManager : MonoBehaviour
             }
         }
 
-        //cellValues[0, 1] = 1;
-        //cellValues[1, 2] = 1;
-        //cellValues[2, 0] = 1;
-        //cellValues[2, 1] = 1;
-        //cellValues[2, 2] = 1;
+        // init pattern
+        SetCapPattern();
 
-        //cellValues[0, 1] = 1;
-        //cellValues[1, 1] = 1;
-        //cellValues[2, 1] = 1;
-        //cellValues[2, 2] = 1;
-        //cellValues[1, 3] = 1;
-
-        //cellValues[gridSize - 1, 0] = 1;
-        //cellValues[gridSize - 2, 1] = 1;
-        //cellValues[gridSize - 3, 1] = 1;
-        //cellValues[gridSize - 1, 2] = 1;
-        //cellValues[gridSize - 2, 2] = 1;
-
-        SetCapPattern(cellValues);
+        // init color
+        currColorPallete = new Gradient();
+        SetDefaultColorPallet();
 
         UpdateCellVisibility();
-
     }
 
     void Update()
@@ -75,8 +63,8 @@ public class GameOfLifeManager : MonoBehaviour
 
         if (timeAccumulator > timeStep)
         {
-            UpdateCell();
             UpdateCellVisibility();
+            UpdateCell();
 
 
             while (timeAccumulator > 0.0f)
@@ -84,6 +72,12 @@ public class GameOfLifeManager : MonoBehaviour
                 timeAccumulator -= timeStep;
             }
         }
+
+    }
+
+    public void TimeStepValueChangeCheck()
+    {
+        timeStep = Mathf.SmoothStep(0.01f, 1.0f, timeStepSlider.value);
 
     }
 
@@ -149,7 +143,7 @@ public class GameOfLifeManager : MonoBehaviour
                     var newColorRange = cellValues[i, j] / 4.0f;
 
                     Material mat = cells[i, j].GetComponent<MeshRenderer>().material;
-                    var displayColor = colorPallete.Evaluate(newColorRange);
+                    var displayColor = currColorPallete.Evaluate(newColorRange);
                     mat.SetColor("_Color", displayColor);
                 }
             }
@@ -204,6 +198,19 @@ public class GameOfLifeManager : MonoBehaviour
         return aliveCount;
     }
 
+    private void CopyCellsValue(long[,] src, long[,] dest)
+    {
+        for (int i = 0; i < gridSize; ++i)
+        {
+            for (int j = 0; j < gridSize; ++j)
+            {
+                dest[i, j] = src[i, j];
+            }
+        }
+    }
+
+    #region Pattern
+
     private void ResetPattern(long[,] grid)
     {
         for (int i = 0; i < gridSize; ++i)
@@ -215,11 +222,29 @@ public class GameOfLifeManager : MonoBehaviour
         }
     }
 
-    private void SetCapPattern(long[,] grid)
+    // randomly choose 25% cells as alive
+    public void SetRandomPattern25()
     {
-        ResetPattern(grid);
+        ResetPattern(cellValues);
 
-        // Cap
+        for (int i = 0; i < gridSize; ++i)
+        {
+            for (int j = 0; j < gridSize; ++j)
+            {
+                float rand = Random.Range(0f, 1f);
+
+                if (rand > 0.75f)
+                {
+                    cellValues[i, j] = 1;
+                }
+            }
+        }
+    }
+
+    public void SetCapPattern()
+    {
+        ResetPattern(cellValues);
+
         int center = gridSize / 2;
         cellValues[center, center] = 1;
         cellValues[center + 1, center] = 1;
@@ -231,14 +256,95 @@ public class GameOfLifeManager : MonoBehaviour
         cellValues[center + 2, center + 2] = 1;
     }
 
-    private void CopyCellsValue(long[,] src, long[,] dest)
+    public void SetTearDropPattern()
     {
-        for (int i = 0; i < gridSize; ++i)
-        {
-            for (int j = 0; j < gridSize; ++j)
-            {
-                dest[i, j] = src[i, j];
-            }
-        }
+        ResetPattern(cellValues);
+
+        int center = gridSize / 2;
+        cellValues[center - 1, center] = 1;
+        cellValues[center - 1, center + 1] = 1;
+        cellValues[center, center - 1] = 1;
+        cellValues[center + 1, center - 1] = 1;
+        cellValues[center, center + 2] = 1;
+        cellValues[center + 1, center + 2] = 1;
+        cellValues[center + 2, center + 2] = 1;
+        cellValues[center + 2, center + 1] = 1;
+        cellValues[center + 2, center] = 1;
     }
+
+    public void SetTestTubeBabyPattern()
+    {
+        ResetPattern(cellValues);
+
+        int center = gridSize / 2;
+        cellValues[center - 1, center] = 1;
+        cellValues[center - 1, center + 1] = 1;
+        cellValues[center - 1, center + 2] = 1;
+
+        cellValues[center - 2, center + 3] = 1;
+        cellValues[center - 3, center + 3] = 1;
+        cellValues[center - 3, center + 2] = 1;
+
+        cellValues[center, center - 1] = 1;
+        cellValues[center + 1, center - 1] = 1;
+
+        cellValues[center + 2, center] = 1;
+        cellValues[center + 2, center + 1] = 1;
+        cellValues[center + 2, center + 2] = 1;
+
+        cellValues[center + 3, center + 3] = 1;
+        cellValues[center + 4, center + 3] = 1;
+        cellValues[center + 4, center + 2] = 1;
+    }
+
+    #endregion // Pattern
+
+    #region Color Pallete
+
+    public void SetDefaultColorPallet()
+    {
+        currColorPallete.SetKeys(defaultColorPallete.colorKeys, defaultColorPallete.alphaKeys);
+        currColorPallete.mode = defaultColorPallete.mode;
+    }
+
+    public void SetBlueGradientPallete()
+    {
+        SetGradientPallete(Color.blue);
+    }
+
+    public void SetGreenGradientPallete()
+    {
+        SetGradientPallete(Color.green);
+    }
+
+    public void SetRedGradientPallete()
+    {
+        SetGradientPallete(Color.red);
+    }
+
+
+    public void SetGradientPallete(Color color)
+    {
+        GradientColorKey[] colorKey;
+        GradientAlphaKey[] alphaKey;
+
+        colorKey = new GradientColorKey[2];
+        colorKey[0].color = color;
+        colorKey[0].time = 0.0f;
+        colorKey[1].color = color;
+        colorKey[1].time = 1.0f;
+
+        // Populate the alpha  keys at relative time 0 and 1  (0 and 100%)
+        alphaKey = new GradientAlphaKey[2];
+        alphaKey[0].alpha = 0.3f;
+        alphaKey[0].time = 0.0f;
+        alphaKey[1].alpha = 1.0f;
+        alphaKey[1].time = 1.0f;
+
+        currColorPallete.SetKeys(colorKey, alphaKey);
+        currColorPallete.mode = GradientMode.Blend;
+    }
+
+    #endregion // Color Pallete
+
 }
