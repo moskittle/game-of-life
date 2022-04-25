@@ -438,5 +438,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cellPrefab: {fileID: 3122351193386822945, guid: 462e78d3ca9608c4a880919c34cf1402, type: 3}
-  gridSize: 50
-  timeStep: 0.05
+  gridSize: 20
+  timeStep: 0.2
+  colorPallete:
+    serializedVersion: 2
+    key0: {r: 1, g: 1, b: 1, a: 1}
+    key1: {r: 0.33490568, g: 1, b: 0.5566039, a: 1}
+    key2: {r: 1, g: 0.9158805, b: 0.495283, a: 1}
+    key3: {r: 0.98039216, g: 0.64111114, b: 0.27843142, a: 1}
+    key4: {r: 1, g: 0.38300002, b: 0.38300002, a: 1}
+    key5: {r: 0, g: 0, b: 0, a: 0}
+    key6: {r: 0, g: 0, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0, a: 0}
+    ctime0: 0
+    ctime1: 17039
+    ctime2: 33423
+    ctime3: 49807
+    ctime4: 65535
+    ctime5: 0
+    ctime6: 0
+    ctime7: 0
+    atime0: 0
+    atime1: 65535
+    atime2: 65535
+    atime3: 65535
+    atime4: 65535
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 1
+    m_NumColorKeys: 5
+    m_NumAlphaKeys: 2

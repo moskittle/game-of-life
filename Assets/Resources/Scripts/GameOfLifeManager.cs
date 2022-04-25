@@ -7,12 +7,14 @@ public class GameOfLifeManager : MonoBehaviour
 {
     public GameObject cellPrefab;
 
-    [Range(4, 50)]
+    [Range(4, 100)]
     public int gridSize = 20;
 
     [Range(0.05f, 2.0f)]
     public float timeStep = 1.0f;
     private float timeAccumulator = 0.0f;
+
+    public Gradient colorPallete;
 
     private GameObject[,] cells;
     private long[,] cellValues; // a cell is alive if value is greater than 0; otherwise, it is dead
@@ -55,13 +57,15 @@ public class GameOfLifeManager : MonoBehaviour
         //cellValues[2, 2] = 1;
         //cellValues[1, 3] = 1;
 
-        cellValues[gridSize - 1, 0] = 1;
-        cellValues[gridSize - 2, 1] = 1;
-        cellValues[gridSize - 3, 1] = 1;
-        cellValues[gridSize - 1, 2] = 1;
-        cellValues[gridSize - 2, 2] = 1;
+        //cellValues[gridSize - 1, 0] = 1;
+        //cellValues[gridSize - 2, 1] = 1;
+        //cellValues[gridSize - 3, 1] = 1;
+        //cellValues[gridSize - 1, 2] = 1;
+        //cellValues[gridSize - 2, 2] = 1;
 
-        DisplayCells();
+        SetCapPattern(cellValues);
+
+        UpdateCellVisibility();
 
     }
 
@@ -72,7 +76,7 @@ public class GameOfLifeManager : MonoBehaviour
         if (timeAccumulator > timeStep)
         {
             UpdateCell();
-            DisplayCells();
+            UpdateCellVisibility();
 
 
             while (timeAccumulator > 0.0f)
@@ -107,10 +111,18 @@ public class GameOfLifeManager : MonoBehaviour
                         newValue = 0;   // dead
                         SetCellValue(newCellValues, i, j, newValue);
                     }
+                    // 2. If survived, grow older by increase value by 1
+                    else
+                    {
+                        newValue = cellValues[i, j] + 1;
+                        newValue = newValue > 4 ? 4 : newValue;
+
+                        SetCellValue(newCellValues, i, j, newValue);
+                    }
                 }
                 else
                 {
-                    // 2. If a "dead" cell had *exactly* 3 alive neighbors, it becomes alive.
+                    // 3. If a "dead" cell had *exactly* 3 alive neighbors, it becomes alive.
                     if (neighborCount == 3)
                     {
                         newValue = 1;   // alive
@@ -123,7 +135,7 @@ public class GameOfLifeManager : MonoBehaviour
         CopyCellsValue(newCellValues, cellValues);
     }
 
-    void DisplayCells()
+    void UpdateCellVisibility()
     {
         for (int i = 0; i < gridSize; ++i)
         {
@@ -131,6 +143,15 @@ public class GameOfLifeManager : MonoBehaviour
             {
                 var alive = IsAliveCell(cellValues, i, j);
                 cells[i, j].SetActive(alive);
+
+                if (alive)
+                {
+                    var newColorRange = cellValues[i, j] / 4.0f;
+
+                    Material mat = cells[i, j].GetComponent<MeshRenderer>().material;
+                    var displayColor = colorPallete.Evaluate(newColorRange);
+                    mat.SetColor("_Color", displayColor);
+                }
             }
         }
     }
@@ -181,6 +202,33 @@ public class GameOfLifeManager : MonoBehaviour
         }
 
         return aliveCount;
+    }
+
+    private void ResetPattern(long[,] grid)
+    {
+        for (int i = 0; i < gridSize; ++i)
+        {
+            for (int j = 0; j < gridSize; ++j)
+            {
+                grid[i, j] = 0;
+            }
+        }
+    }
+
+    private void SetCapPattern(long[,] grid)
+    {
+        ResetPattern(grid);
+
+        // Cap
+        int center = gridSize / 2;
+        cellValues[center, center] = 1;
+        cellValues[center + 1, center] = 1;
+        cellValues[center + 2, center] = 1;
+        cellValues[center + 3, center] = 1;
+        cellValues[center, center + 1] = 1;
+        cellValues[center + 3, center + 1] = 1;
+        cellValues[center + 1, center + 2] = 1;
+        cellValues[center + 2, center + 2] = 1;
     }
 
     private void CopyCellsValue(long[,] src, long[,] dest)
